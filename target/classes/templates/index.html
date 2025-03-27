@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Provincias del Ecuador</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Ubicaciones</h1>
+    <select id="provincia">
+        <option value="">Seleccione una provincia</option>
+    </select>
+    <select id="canton" disabled>
+        <option value="">Seleccione un cantón</option>
+    </select>
+    <select id="parroquia" disabled>
+        <option value="">Seleccione una parroquia</option>
+    </select>
+
+    <script th:inline="javascript">
+        $(document).ready(function() {
+            // Cargar provincias al inicio
+            $.get("/api/ubicacion/provincias", function(data) {
+                $.each(data, function(id, provincia) {
+                    $("#provincia").append(`<option value="${id}">${provincia.provincia}</option>`);
+                });
+            });
+
+            // Actualizar cantones al seleccionar provincia
+            $("#provincia").change(function() {
+                const provinciaId = $(this).val();
+                if (provinciaId) {
+                    $.get(`/api/ubicacion/cantones/${provinciaId}`, function(data) {
+                        $("#canton").empty().append('<option value="">Seleccione un cantón</option>').prop("disabled", false);
+                        $.each(data, function(id, canton) {
+                            $("#canton").append(`<option value="${id}">${canton.canton}</option>`);
+                        });
+                    });
+                }
+            });
+
+            // Actualizar parroquias al seleccionar cantón
+            $("#canton").change(function() {
+                const provinciaId = $("#provincia").val();
+                const cantonId = $(this).val();
+                if (provinciaId && cantonId) {
+                    $.get(`/api/ubicacion/parroquias/${provinciaId}/${cantonId}`, function(data) {
+                        $("#parroquia").empty().append('<option value="">Seleccione una parroquia</option>').prop("disabled", false);
+                        $.each(data, function(id, nombre) {
+                            $("#parroquia").append(`<option value="${id}">${nombre}</option>`);
+                        });
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
